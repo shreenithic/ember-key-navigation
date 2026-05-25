@@ -8,7 +8,8 @@ import { computed } from '@ember/object';
 
 export default Component.extend({
   layout,
-  classNameBindings: [':navigation-item', 'activeClass'],
+  classNameBindings: [':navigation-item', 'activeClass', 'isDisabled:disabled'],
+  disabledPath: null,
   isActive: computed('highlightedItem', 'model', function () {
     return this.highlightedItem === this.model;
   }),
@@ -16,6 +17,12 @@ export default Component.extend({
     return this.isActive ? this.activeItemClass : '';
   }),
   activeItemClass: 'active',
+  isDisabled: computed('model', 'disabledPath', function () {
+    if (!this.disabledPath || this.model === undefined || this.model === null) {
+      return false;
+    }
+    return Boolean(this.model[this.disabledPath]);
+  }),
 
   didUpdateAttrs() {
     this._super(...arguments);
@@ -27,7 +34,9 @@ export default Component.extend({
   },
 
   mouseEnter() {
-    this.setHighLightedItem(this.model);
+    if (!this.isDisabled) {
+      this.setHighLightedItem(this.model);
+    }
   },
 
   onOptionSelected() {
@@ -35,7 +44,9 @@ export default Component.extend({
   },
 
   click() {
-    this.onOptionSelected();
+    if (!this.isDisabled) {
+      this.onOptionSelected();
+    }
   },
 
   willDestroyElement() {
