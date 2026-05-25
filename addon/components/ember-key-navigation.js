@@ -29,6 +29,7 @@ export default Component.extend(Evented, {
   isKeyPressed: false,
   focusInDefault: false,
   navigationItem: 'key-navigation-item',
+  disabledPath: null,
 
   didInsertElement() {
     this._super(...arguments);
@@ -40,10 +41,15 @@ export default Component.extend(Evented, {
   didUpdateAttrs() {
     this._super(...arguments);
     if (this.model.length && (this._navItems !== this.model || this._navItemsLength !== this.model.length)) {
-      scheduleOnce('afterRender', this, 'setHighLightedItemProps');
+      scheduleOnce('afterRender', this, 'highlightFirstNonDisabledItem');
       this._navItems = this.model;
       this.set('_navItemsLength', this.model.length);
     }
+  },
+
+  highlightFirstNonDisabledItem() {
+    this.set('highlightedIndex', -1);
+    this.gotoNext();
   },
 
   keyDown(event) {
@@ -60,7 +66,9 @@ export default Component.extend(Evented, {
     }
 
     if (keyCode === KEYS.ENTER) {
-      this.trigger('on-select');
+      if (!this.isItemDisabled(this.highlightedIndex)) {
+        this.trigger('on-select');
+      }
       return false;
     }
   },
@@ -70,17 +78,33 @@ export default Component.extend(Evented, {
     this.set('isKeyPressed', false);
   },
 
+  isItemDisabled(index) {
+    let item = this.model[index];
+    if (!this.disabledPath || item === undefined || item === null) {
+      return false;
+    }
+    return Boolean(item[this.disabledPath]);
+  },
+
   gotoNext() {
     let highlightedIndex = this.highlightedIndex + 1;
-    if (highlightedIndex < this.model.length) {
-      this.setHighLightedItemProps(highlightedIndex);
+    while (highlightedIndex < this.model.length) {
+      if (!this.isItemDisabled(highlightedIndex)) {
+        this.setHighLightedItemProps(highlightedIndex);
+        return;
+      }
+      highlightedIndex++;
     }
   },
 
   gotoPrevious() {
     let highlightedIndex = this.highlightedIndex - 1;
-    if (highlightedIndex >= 0) {
-      this.setHighLightedItemProps(highlightedIndex);
+    while (highlightedIndex >= 0) {
+      if (!this.isItemDisabled(highlightedIndex)) {
+        this.setHighLightedItemProps(highlightedIndex);
+        return;
+      }
+      highlightedIndex--;
     }
   },
 
