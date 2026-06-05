@@ -5,6 +5,7 @@
 import Component from '@ember/component';
 import layout from '../templates/components/key-navigation-item';
 import { computed } from '@ember/object';
+import { isEmpty } from '@ember/utils';
 
 export default Component.extend({
   layout,
@@ -18,7 +19,7 @@ export default Component.extend({
   }),
   activeItemClass: 'active',
   isDisabled: computed('model', 'disabledPath', function () {
-    if (!this.disabledPath || this.model === undefined || this.model === null) {
+    if (!this.disabledPath || isEmpty(this.model)) {
       return false;
     }
     return Boolean(this.model[this.disabledPath]);

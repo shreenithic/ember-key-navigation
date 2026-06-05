@@ -6,6 +6,7 @@ import Component from '@ember/component';
 import layout from '../templates/components/ember-key-navigation';
 import Evented from '@ember/object/evented';
 import { scheduleOnce } from '@ember/runloop';
+import { isEmpty } from '@ember/utils';
 
 const KEYS = {
   ENTER: 13,
@@ -40,10 +41,9 @@ export default Component.extend(Evented, {
 
   didUpdateAttrs() {
     this._super(...arguments);
-    if (this.model.length && (this._navItems !== this.model || this._navItemsLength !== this.model.length)) {
+    if (this.model.length && this._navItems !== this.model) {
       scheduleOnce('afterRender', this, 'highlightFirstNonDisabledItem');
       this._navItems = this.model;
-      this.set('_navItemsLength', this.model.length);
     }
   },
 
@@ -80,7 +80,7 @@ export default Component.extend(Evented, {
 
   isItemDisabled(index) {
     let item = this.model[index];
-    if (!this.disabledPath || item === undefined || item === null) {
+    if (!this.disabledPath || isEmpty(item)) {
       return false;
     }
     return Boolean(item[this.disabledPath]);
